@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+            crossorigin="anonymous"
+    />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></<script !src=""></script>>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <!-- <link rel="stylesheet" href="login.css" /> -->
+    <title>Login</title>
+    <style>
+      body{
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #content2 {
+        display: none;
+      }
+      #content1,
+      #content2 {
+        margin: 0;
+        padding: 0;
+        height: 300px;
+        width: 300px;
+      }
+      .maindiv {
+        display: flexbox;
+        position: relative;
+        border: 3px solid black;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 350px;
+      }
+      .subdiv{
+        align-items: center;
+        text-align: center;
+      }
+      .button1{
+        align-items: center;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .btn1{
+        width: 450px;
+      }
+      .field{
+        padding-left: 20px;
+        padding-right: 20px;
+        align-items: center;
+        margin-top: 10px;
+
+      }
+      .form{
+        justify-items: center;
+        width: 100%;
+      }
+      .form input{
+        width: 100%;
+      }
+      .img{
+        padding-left: 30px;
+        height: 250px;
+        width: 250px;
+      }
+      .button1 input{
+        background-color: blue;
+        border-radius: 3px;
+        gap: 5px;
+        color: white;
+      }
+    </style>
+</head>
+<body>
+<div class="maindiv">
+    <div class="subdiv"><h1>COMPANY</h1></div>
+    <div class="subdiv"><h4>Sign into your account</h4></div>
+    <form action="/login" method="post">
+        <div class="form">
+            <div id="content1">
+                <div class="field">
+                    <label for="username">Username</label><br>
+                    <input type="text" placeholder="" required />
+                </div>
+                <div class="field">
+                    <label for="password">Password</label><br>
+                    <input type="password" placeholder="*******" required />
+                </div>
+            </div>
+            <div id="content2" class="img">
+            </div>
+        </div>
+        <div class="button1">
+            <input type="submit"  id="log-in" class="btn1 login-button" >
+            <input type="button" placeholder="QR Code" class="btn1" value="QR Code" id="button" onclick="toggleContent()"/>
+        </div>
+    </form>
+</div>
+
+
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"
+></script>
+
+<script>
+
+      // Websocket Connection builder and and message transfer
+      var sessionID=0;
+   const socketUrl = 'ws://192.168.1.34:8080/ws-login';
+   const stompClient = new StompJs.Client({
+     brokerURL: socketUrl
+ });
+   stompClient.onConnect = (frame) => {
+          console.log('Connected: ' + frame);
+          sessionID=frame.headers['user-name'];
+          console.log(frame.headers['user-name']);
+          stompClient.subscribe('/topic/successfull', (MESSAGE) => {
+          console.log(MESSAGE);
+          console.log(MESSAGE.body);
+              showGreeting(JSON.parse(MESSAGE.body));
+          });
+           stompClient.subscribe('/user/topic/send-data', (MESSAGE) => {
+          console.log(MESSAGE);
+          console.log(MESSAGE.body);
+              showGreeting(JSON.parse(MESSAGE.body));
+          });
+      };
+     function afterWindowLoad() {
+     stompClient.activate();
+     }
+     function showGreeting(message) {
+         console.log('message'+message.message)
+         $("#greetings").append("<tr><td><h1>" + message.message + "<h1></td></tr>");
+         var data=new FormData();
+        if(message.username!=null && message.password!=null){
+         data.append("username",message.username);
+         data.append("password",message.password);
+         var formdata=new URLSearchParams();
+         for (const pair of data) {
+            formdata.append(pair[0],pair[1]);
+         }
+        fetch('/login', { method: 'POST',credentials: 'include', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, body: formdata })
+      .then((response) => {
+          if(response.status=="200"){
+            return response.text();
+          }else
+          console.log(response.headers);
+          return 'login failed';
+  })
+  .then((html) => {
+    document.body.innerHTML = html
+  });
+    }
+        console.log(message.message);
+
+   }
+     window.onload=afterWindowLoad;
+      function toggleContent() {
+        var qrcode = new QRCode("content2",sessionID);
+        var content1 = document.getElementById("content1");
+        var content2 = document.getElementById("content2");
+        var button = document.getElementById("button");
+
+        if (content1.style.display === "none") {
+          content1.style.display = "block";
+          content2.style.display = "none";
+          document.getElementById("log-in").style.display="flex";
+          button.value = "QR CODE";
+        } else {
+
+          content1.style.display = "none";
+          content2.style.display = "block";
+          document.getElementById("log-in").style.display="none";
+          button.value= "USER";
+        }
+      }
+    </script>
+</body>
+</html>
