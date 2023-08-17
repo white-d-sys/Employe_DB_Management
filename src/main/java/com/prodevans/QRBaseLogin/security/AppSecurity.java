@@ -25,8 +25,9 @@ public class AppSecurity {
                 "/img/**", "/websocket-server","/api/login").permitAll()
                 .requestMatchers("/test").permitAll()
                 .requestMatchers("/resources/**").permitAll()
+                        .requestMatchers("/success").authenticated()
                 .requestMatchers(HttpMethod.POST).permitAll().anyRequest().permitAll())
-                .formLogin(login->login.defaultSuccessUrl("/success"));
+                .formLogin(login->login.loginPage("/").defaultSuccessUrl("/success"));
         return httpSecurity.build();
 
     }
