@@ -71,7 +71,7 @@ public class RegisterController {
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
         StompSessionHandler sessionHandler=customStompSessionhandler;
-        ListenableFuture<StompSession> sessionAsync =stompClient.connect("ws://192.168.1.34:8080/ws-login", sessionHandler);
+        ListenableFuture<StompSession> sessionAsync =stompClient.connect("ws://192.168.1.34:8081/ws-login", sessionHandler);
        StompSession session=sessionAsync.get();
        session.send("/app/send-data",usr);
         return new ResponseEntity<Integer>(HttpStatus.OK);

@@ -1,4 +1,4 @@
- const socketUrl = 'ws://192.168.1.25:8080/ws-login';
+ const socketUrl = 'ws://192.168.1.25:8081/ws-login';
  const stompClient = new StompJs.Client({
      brokerURL: socketUrl;
  });
